@@ -76,13 +76,15 @@ public class MainActivity extends Activity {
     Map<String,String> namemap =new HashMap<>();
     TextView demo;
     String defaultSongName;
-
+    int position1;
+    ArrayAdapter adapter;
 
     private PendingIntent pendingIntent;
     private AlarmManager manager;
     final String[] days = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
     SharedPreferences sharedPreferences;
     SharedPreferences sharedPreferences1;
+    Spinner spinner;
 
 
 
@@ -206,7 +208,7 @@ public class MainActivity extends Activity {
 
         String fileList[];
 
-        Spinner spinner = (Spinner) findViewById(R.id.spinner14);
+         spinner = (Spinner) findViewById(R.id.spinner14);
         AssetManager assetManager = getAssets();
 
         // Memory song code
@@ -224,6 +226,7 @@ public class MainActivity extends Activity {
                     int data = audioCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
                     Log.e("id", audioCursor.getString(0));
                     id=audioCursor.getString(0);
+
                     Log.e("data no internal",""+MediaStore.Audio.Media.getContentUriForPath(audioCursor.getString(data)));
                     namemap.put(id,audioCursor.getString(audioIndex));
                     audioList.add(new Song(audioCursor.getString(audioIndex), audioCursor.getString(data),id,MediaStore.Audio.Media.getContentUriForPath(audioCursor.getString(data))));
@@ -263,9 +266,10 @@ public class MainActivity extends Activity {
         for (Song list11 : audioList) {
             displayName.add(list11.getSongName());
         }
-        ArrayAdapter adapter = new ArrayAdapter(getApplicationContext(), android.R.layout.simple_spinner_item,displayName);
+         adapter = new ArrayAdapter(getApplicationContext(), android.R.layout.simple_spinner_item,displayName);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
+
 
         setDefaultRingtone();
 
@@ -274,12 +278,13 @@ public class MainActivity extends Activity {
 //                Context.MODE_PRIVATE);
 //        String savedSongName=sharedPreferences2.getString("Sunday","");
 //        Log.i("testing",savedSongName);
-
+        spinner.setSelection(position1);
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 songName = parent.getItemAtPosition(position).toString();
                 Log.i("Text ", songName);
+
             }
 
             @Override
@@ -293,8 +298,11 @@ public class MainActivity extends Activity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 day = parent.getItemAtPosition(position).toString();
                 Log.i("Selected day is ", day);
+                int pos=GetSongsPosition(day);
+                spinner.setSelection(pos);
 
                 demo.setText("Ringtone Set for "+day+ " is "+sharedPreferences.getString(day,""));
+
             }
 
             @Override
@@ -318,9 +326,13 @@ public class MainActivity extends Activity {
 
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putString(day,defaults);
+
                 editor.apply();
+                spinner.setSelection(GetSongsPosition(day));
                 changeRingtone(audioList);
                 demo.setText("Ringtone Set for "+day+ " is "+sharedPreferences.getString(day,""));
+                Toast.makeText(getApplicationContext(),"Ringtone set for "+day+" is "+sharedPreferences.getString(day,""),Toast.LENGTH_SHORT).show();
+
 
 
             }
@@ -406,9 +418,10 @@ public class MainActivity extends Activity {
                     //sharedPreferences = getApplicationContext().getSharedPreferences("Ringtone Details", Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPreferences.edit();
                     editor.putString(day,songName);
+
                     editor.apply();
                     demo.setText("Ringtone Set for "+day+ " is "+sharedPreferences.getString(day,""));
-
+                    getPosition();
                     String song=changeRingtone(audioList);
                     Toast.makeText(getApplicationContext(),"Ringtone set for "+day+" is "+sharedPreferences.getString(day,""),Toast.LENGTH_SHORT).show();
 
@@ -446,7 +459,12 @@ public class MainActivity extends Activity {
         }
     }
 
+    public void getPosition(){
 
+        position1=adapter.getPosition(songName);
+
+
+    }
     public  String changeRingtone(List<Song> audioList1){
 
 //        SharedPreferences sharedPreferences = getSharedPreferences("Ringtone Manager",
@@ -478,6 +496,15 @@ public class MainActivity extends Activity {
 //        Log.e("Default Ringtone is" , ""+ringtone);
     }
 
+    public int GetSongsPosition(String day)
+    {
+        SharedPreferences sharedPreferences4 = getSharedPreferences("Ringtone Manager",
+                Context.MODE_PRIVATE);
+        String savedSongName=sharedPreferences4.getString(day,"");
+        int pos=adapter.getPosition(savedSongName);
+
+        return pos;
+    }
     private void setDefaultRingtone()
     {
         Uri ringtone= RingtoneManager.getActualDefaultRingtoneUri(MainActivity.this, RingtoneManager.TYPE_RINGTONE);
@@ -496,11 +523,14 @@ public class MainActivity extends Activity {
                     if((sharedPreferences1.getString("defaultRingtone","").equals(""))) {
                         SharedPreferences.Editor editor1 = sharedPreferences1.edit();
                         editor1.putString("defaultRingtone", defaultSongName);
+                        position1=adapter.getPosition(defaultSongName);
                         editor1.commit();
                         for (String day : days) {
                             SharedPreferences.Editor editor = sharedPreferences.edit();
                             editor.putString(day, defaultSongName);
+
                             editor.apply();
+
                         }
 
                     }

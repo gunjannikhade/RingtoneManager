@@ -12,10 +12,12 @@ import android.util.Log;
 public class MyReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.e("debugging", "Kuch to huva");
+        Log.i("debugging", "Kuch to huva");
 
-        if (intent.getAction().equals(Intent.ACTION_DATE_CHANGED)) {
-            Log.e("", "ACTION_DATE_CHANGED received");
+        if (intent.getAction().equals(Intent.ACTION_TIME_CHANGED)) {
+            Intent intent1=new Intent(context,ActualCodeService.class);
+            context.startService(intent1);
+            Log.i("", "Ringtone Changed Application Called");
         }
     }
 }

@@ -13,6 +13,16 @@ public class Song {
     String Path;
     String id;
     Uri storagePath;
+    int position;
+
+    public int getPosition() {
+        return position;
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
+    }
+
     public void setId(String id) {
         this.id = id;
     }
@@ -38,6 +48,7 @@ public class Song {
         Path = path;
         this.id=id;
         this.storagePath=storagePath;
+
 
     }
 

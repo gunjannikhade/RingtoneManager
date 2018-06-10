@@ -30,11 +30,11 @@
         <service android:enabled="true" android:name=".ActualCodeService" />
 
 
-        <!--<receiver android:enabled="true" android:name="MyReceiver" >-->
-            <!--<intent-filter>-->
-                <!--<action android:name="android.intent.action.DATE_CHANGED" />-->
-            <!--</intent-filter>-->
-        <!--</receiver>-->
+        <receiver android:enabled="true" android:name="MyReceiver" >
+            <intent-filter>
+                <action android:name="android.intent.action.TIME_SET" />
+            </intent-filter>
+        </receiver>
 
 
     </application>
