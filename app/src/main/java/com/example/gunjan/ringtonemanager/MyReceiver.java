@@ -5,9 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-/**
- * Created by Gunjan on 02-06-18.
- */
 
 public class MyReceiver extends BroadcastReceiver {
     @Override

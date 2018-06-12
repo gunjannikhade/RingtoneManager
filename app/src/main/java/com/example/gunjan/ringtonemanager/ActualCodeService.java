@@ -20,6 +20,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -39,8 +40,9 @@ public class ActualCodeService extends IntentService {
     public ActualCodeService() {
         super("ActualCodeService");
     }
-    List<Song> audioList=new ArrayList<>();
-    List<Song> displayList=new ArrayList<>();
+
+    List<Song> audioList = new ArrayList<>();
+    List<Song> displayList = new ArrayList<>();
 
 
     @Override
@@ -66,7 +68,7 @@ public class ActualCodeService extends IntentService {
         String id;
 
         Cursor audioCursor = getContentResolver().query(MediaStore.Audio.Media.INTERNAL_CONTENT_URI, null, null, null, null);
-        Log.e("","in service");
+        Log.e("", "in service");
 
         if (audioCursor != null) {
             if (audioCursor.moveToFirst()) {
@@ -74,11 +76,11 @@ public class ActualCodeService extends IntentService {
                     int audioIndex = audioCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE);
                     int data = audioCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
                     Log.e("id", audioCursor.getString(0));
-                    id=audioCursor.getString(0);
-                    Log.e("data no internal",""+MediaStore.Audio.Media.getContentUriForPath(audioCursor.getString(data)));
+                    id = audioCursor.getString(0);
+                    Log.e("data no internal", "" + MediaStore.Audio.Media.getContentUriForPath(audioCursor.getString(data)));
                     //     namemap.put(id,audioCursor.getString(audioIndex));
-                    audioList.add(new Song(audioCursor.getString(audioIndex), audioCursor.getString(data),id,MediaStore.Audio.Media.getContentUriForPath(audioCursor.getString(data))));
-                    displayList.add(new Song(audioCursor.getString(audioIndex),id));
+                    audioList.add(new Song(audioCursor.getString(audioIndex), audioCursor.getString(data), id, MediaStore.Audio.Media.getContentUriForPath(audioCursor.getString(data))));
+                    displayList.add(new Song(audioCursor.getString(audioIndex), id));
                     Log.i("audioCursor", audioCursor.getString(data));
                     //  audioList.add("Sunday");
 
@@ -95,13 +97,13 @@ public class ActualCodeService extends IntentService {
                 do {
                     int audioIndex = audioCursorexternal.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE);
                     int data = audioCursorexternal.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
-                    id=audioCursorexternal.getString(0);
+                    id = audioCursorexternal.getString(0);
                     Log.e("id", audioCursorexternal.getString(0));
-                    Log.e("data no",""+audioCursorexternal.getColumnIndexOrThrow(MediaStore.Audio.Media._ID));
-                    audioList.add(new Song(audioCursorexternal.getString(audioIndex), audioCursorexternal.getString(data),id,MediaStore.Audio.Media.getContentUriForPath(audioCursorexternal.getString(data))));
-                    displayList.add(new Song(audioCursorexternal.getString(audioIndex),id));
-
+                    Log.e("data no", "" + audioCursorexternal.getColumnIndexOrThrow(MediaStore.Audio.Media._ID));
+                    audioList.add(new Song(audioCursorexternal.getString(audioIndex), audioCursorexternal.getString(data), id, MediaStore.Audio.Media.getContentUriForPath(audioCursorexternal.getString(data))));
+                    displayList.add(new Song(audioCursorexternal.getString(audioIndex), id));
                     Log.i("audioCursor", audioCursorexternal.getString(data));
+
                     //  audioList.add("Sunday");
 
                 } while (audioCursorexternal.moveToNext());
@@ -111,30 +113,31 @@ public class ActualCodeService extends IntentService {
         changeRingtone();
     }
 
-    public  void changeRingtone(){
-//        SharedPreferences sharedPreferences = getSharedPreferences("Ringtone Manager",
-//                Context.MODE_PRIVATE);
+    public void changeRingtone() {
         Date now = new Date();
         SimpleDateFormat simpleDateformat = new SimpleDateFormat("EEEE"); // the day of the week spelled out completely
-        Log.i("day",simpleDateformat.format(now));
+        Log.i("day", simpleDateformat.format(now));
         SharedPreferences sharedPreferences3 = getSharedPreferences("Ringtone Manager",
                 Context.MODE_PRIVATE);
-        String savedSongName=sharedPreferences3.getString(simpleDateformat.format(now),"");
-        Gson gson=new Gson();
-        Song song_here=gson.fromJson(savedSongName,Song.class);
+
+        String savedSongName = sharedPreferences3.getString(simpleDateformat.format(now), "");
+        Gson json = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+        Song song_here = json.fromJson(savedSongName, Song.class);
         for (Song song : audioList) {
-            Log.i("Song here is ",song.getSongName());
-            //Log.i("Song Name here is",songName);
             if (song.getId().equals(song_here.getId())) {
                 Uri newuri = ContentUris.withAppendedId(song.getStoragePath(), Long.valueOf(song.getId()));
                 RingtoneManager.setActualDefaultRingtoneUri(getApplicationContext(), RingtoneManager.TYPE_RINGTONE, newuri);
-                Toast.makeText(getApplicationContext(),"Ringtone is set to "+song.getSongName(),Toast.LENGTH_SHORT).show();
-                Log.e("Check","Checking if it is there");
-            }
 
+
+            }
         }
+        //    Toast.makeText(getApplicationContext(),"Ringtone set for "+simpleDateformat.format(now)+"is "+song.getSongName(),Toast.LENGTH_SHORT).show();
+        Log.e("Check", "Checking if it is there");
+
+    }
 //        Uri ringtone= RingtoneManager.getActualDefaultRingtoneUri(MainActivity.this, RingtoneManager.TYPE_RINGTONE);
 //        Log.e("Default Ringtone is" , ""+ringtone);
-    }
+
+
 
 }

@@ -81,7 +81,7 @@ public class Song {
     public boolean equals(Object obj) {
         if(obj instanceof Song){
             Song c = (Song ) obj;
-            if(c.getSongName().equals(songName) && c.getId()==id ) return true;
+            if(c.getId().equals(id)) return true;
         }
 
         return false;

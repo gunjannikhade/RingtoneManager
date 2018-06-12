@@ -204,8 +204,6 @@ public class MainActivity extends Activity {
     public void actualCode() {
       //  listRingtones();
 
-
-
 //        IntentFilter intentFilter = new IntentFilter();
 //        intentFilter.addAction(Intent.ACTION_TIME_CHANGED);
 //        registerReceiver(new DateTimeChangeReceiver(), intentFilter);
@@ -219,7 +217,7 @@ public class MainActivity extends Activity {
 
         String fileList[];
 
-         spinner = (Spinner) findViewById(R.id.spinner14);
+        spinner = (Spinner) findViewById(R.id.spinner14);
         AssetManager assetManager = getAssets();
 
         // Memory song code
@@ -340,8 +338,7 @@ public class MainActivity extends Activity {
                 spinner.setSelection(GetSongsPosition(day));
                 changeRingtone(audioList);
                 demo.setText("Ringtone Set for "+day+ " is "+sharedPreferences.getString(day,""));
-                Toast.makeText(getApplicationContext(),"Ringtone set for "+day+" is "+sharedPreferences.getString(day,""),Toast.LENGTH_SHORT).show();
-
+                Toast.makeText(getApplicationContext(),"Ringtone set for "+day+" is "+ gson.fromJson(sharedPreferences.getString(day,""),Song.class),Toast.LENGTH_SHORT).show();
 
 
             }
@@ -409,8 +406,7 @@ public class MainActivity extends Activity {
                     editor.apply();
                  //   demo.setText("Ringtone Set for "+day+ " is "+sharedPreferences.getString(day,""));
                     String song=changeRingtone(audioList);
-               //     Toast.makeText(getApplicationContext(),"Ringtone set for "+day+" is "+sharedPreferences.getString(day,""),Toast.LENGTH_SHORT).show();
-
+                    Toast.makeText(getApplicationContext(),"Ringtone set for "+day+" is "+ gson.fromJson(sharedPreferences.getString(day,""),Song.class),Toast.LENGTH_SHORT).show();
 
 //                    Calendar calendar = Calendar.getInstance();
 //                    int day = calendar.get(Calendar.DAY_OF_WEEK);
@@ -479,7 +475,13 @@ public class MainActivity extends Activity {
         Gson gson=new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
         String json = sharedPreferences4.getString(day, "");
         Song obj = gson.fromJson(json, Song.class);
+        Log.i("sp",json);
         int pos=adapter.getPosition(obj);
+//        Song obj1=displayList.get(21);
+//        String json1=gson.toJson(obj1,Song.class);
+//        Log.i("sp",json1);
+
+
 
         return pos;
     }
