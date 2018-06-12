@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.gunjan.ringtonemanager">
+
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_SETTINGS" ></uses-permission>
-    <uses-permission android:name="android.permission.CHANGE_CONFIGURATION" ></uses-permission>
-    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" ></uses-permission>
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.CHANGE_CONFIGURATION" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
 
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
@@ -22,13 +23,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <receiver android:name=".AlarmReceiver">
-            <!--<intent-filter>-->
-                <!--<action android:name="ax.android.mybroadcast"/>-->
-            <!--</intent-filter>-->
-        </receiver>
-        <service android:enabled="true" android:name=".ActualCodeService" />
-
 
         <receiver android:enabled="true" android:name="MyReceiver" >
             <intent-filter>
@@ -36,6 +30,9 @@
             </intent-filter>
         </receiver>
 
+        <service
+            android:name=".ActualCodeService"
+            android:enabled="true" />
 
     </application>
 

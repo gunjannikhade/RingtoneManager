@@ -4,19 +4,12 @@ import android.net.Uri;
 
 import com.google.gson.annotations.Expose;
 
-import java.net.URI;
-
-/**
- * Created by Gunjan on 19-05-18.
- */
-
 public class Song {
     @Expose
     String songName;
     String Path;
     @Expose
     String id;
-
     Uri storagePath;
     int position;
 
@@ -47,11 +40,11 @@ public class Song {
     public void setStoragePath(Uri storagePath) {
         this.storagePath = storagePath;
     }
+
     public Song(String songName, String id) {
         this.songName = songName;
         this.id = id;
     }
-
 
     public Song(String songName, String path, String id, Uri storagePath) {
         this.songName = songName;
@@ -81,7 +74,7 @@ public class Song {
     public boolean equals(Object obj) {
         if(obj instanceof Song){
             Song c = (Song ) obj;
-            if(c.getSongName().equals(songName) && c.getId()==id ) return true;
+            if(c.getId().equals(id)) return true;
         }
 
         return false;
