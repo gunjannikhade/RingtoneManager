@@ -43,9 +43,18 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import com.owlike.genson.Genson;
+
 import java.io.File;
 import java.io.FilenameFilter;
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,6 +66,7 @@ import java.util.List;
 import java.util.Map;
 
 import static android.R.attr.password;
+import static android.R.attr.spacing;
 
 
 public class MainActivity extends Activity {
@@ -66,7 +76,7 @@ public class MainActivity extends Activity {
     List<Song> audioList = new ArrayList<>();
 
     String day;
-
+    Song song_for;
     ImageButton button;
     String path;
     String songName;
@@ -77,7 +87,7 @@ public class MainActivity extends Activity {
     TextView demo;
     String defaultSongName;
     int position1;
-    ArrayAdapter adapter;
+    ArrayAdapter<Song> adapter;
 
     private PendingIntent pendingIntent;
     private AlarmManager manager;
@@ -85,6 +95,7 @@ public class MainActivity extends Activity {
     SharedPreferences sharedPreferences;
     SharedPreferences sharedPreferences1;
     Spinner spinner;
+    List<Song> displayList=new ArrayList<>();
 
 
 
@@ -212,10 +223,9 @@ public class MainActivity extends Activity {
         AssetManager assetManager = getAssets();
 
         // Memory song code
-
-
-        //  String[] proj = {MediaStore.Audio.Media._ID, MediaStore.Audio.Media.DISPLAY_NAME};// Can include more data for more details and check it.
         Cursor audioCursor = getContentResolver().query(MediaStore.Audio.Media.INTERNAL_CONTENT_URI, null, null, null, null);
+
+
 
         path = MediaStore.Audio.Media.DATA;
         Log.i("Path is ", path);
@@ -230,7 +240,7 @@ public class MainActivity extends Activity {
                     Log.e("data no internal",""+MediaStore.Audio.Media.getContentUriForPath(audioCursor.getString(data)));
                     namemap.put(id,audioCursor.getString(audioIndex));
                     audioList.add(new Song(audioCursor.getString(audioIndex), audioCursor.getString(data),id,MediaStore.Audio.Media.getContentUriForPath(audioCursor.getString(data))));
-
+                    displayList.add(new Song(audioCursor.getString(audioIndex),id));
                     Log.i("audioCursor", audioCursor.getString(data));
                     //  audioList.add("Sunday");
 
@@ -252,6 +262,7 @@ public class MainActivity extends Activity {
                     Log.e("id", audioCursorexternal.getString(0));
                     Log.e("data no",""+audioCursorexternal.getColumnIndexOrThrow(MediaStore.Audio.Media._ID));
                     audioList.add(new Song(audioCursorexternal.getString(audioIndex), audioCursorexternal.getString(data),id,MediaStore.Audio.Media.getContentUriForPath(audioCursorexternal.getString(data))));
+                    displayList.add(new Song(audioCursorexternal.getString(audioIndex),id));
 
                     Log.i("audioCursor", audioCursorexternal.getString(data));
                     //  audioList.add("Sunday");
@@ -262,15 +273,10 @@ public class MainActivity extends Activity {
         audioCursorexternal.close();
         //listRingtones();
 
-        List<String> displayName = new ArrayList<>();
-        for (Song list11 : audioList) {
-            displayName.add(list11.getSongName());
-        }
-         adapter = new ArrayAdapter(getApplicationContext(), android.R.layout.simple_spinner_item,displayName);
+         adapter = new ArrayAdapter(getApplicationContext(), android.R.layout.simple_spinner_item,displayList);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
-
-
+        spinner.setSelection(0);
         setDefaultRingtone();
 
 
@@ -278,12 +284,14 @@ public class MainActivity extends Activity {
 //                Context.MODE_PRIVATE);
 //        String savedSongName=sharedPreferences2.getString("Sunday","");
 //        Log.i("testing",savedSongName);
-        spinner.setSelection(position1);
+       // spinner.setSelection(position1);
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                songName = parent.getItemAtPosition(position).toString();
-                Log.i("Text ", songName);
+               // Log.i("getItem",song_for);
+                song_for = (Song) parent.getItemAtPosition(position);
+                Log.i("Current Selection",song_for.getId());
+                Log.i("Current Name",song_for.getSongName());
 
             }
 
@@ -322,10 +330,11 @@ public class MainActivity extends Activity {
             public void onClick(View v) {
                 SharedPreferences sharedPreferences4 = getSharedPreferences("Default Ringtone",
                         Context.MODE_PRIVATE);
-                String defaults=sharedPreferences4.getString("defaultRingtone","");
+                Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+                String defaultsjson=sharedPreferences4.getString("defaultRingtone","");
 
                 SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putString(day,defaults);
+                editor.putString(day,defaultsjson);
 
                 editor.apply();
                 spinner.setSelection(GetSongsPosition(day));
@@ -350,24 +359,22 @@ public class MainActivity extends Activity {
                     Log.i("Is Playing", "" + mp.isPlaying());
                     if (mp.isPlaying()) {
                         button.setImageDrawable(getResources().getDrawable(R.drawable.play_32));
-
                         // button.setText("Play");
                         mp.stop();
                         mp.reset();
 
                     } else {
-                        for (Song song : audioList) {
-                            if (song.getSongName().equals(songName)) {
-//                                button.setText("Stop");
-                                button.setImageDrawable(getResources().getDrawable(R.drawable.stop_32));
-
+                        for(Song song:audioList)
+                        {
+                            if(song.getId().equals(song_for.getId())){
                                 path = song.getPath();
+                                button.setImageDrawable(getResources().getDrawable(R.drawable.stop_32));
                                 mp.setDataSource(path);
                                 mp.prepare();
                                 mp.start();
-
                             }
                         }
+
                     }
 
                     mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
@@ -382,17 +389,9 @@ public class MainActivity extends Activity {
 
                         }
                     });
-//                    Intent intent=new Intent("ax.android.mybroadcast");
-//                    MainActivity.this.sendBroadcast(intent);
-                    //   Log.i("Media ",MediaStore.Audio.Media.EXTERNAL_CONTENT_URI+"/"+songName.substring(0,));
-                    //   mp.setDataSource(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI+"/"+songName);
-                    //    int resID=getResources().getIdentifier("bhb", "raw", getPackageName());
-//                    if (mediaPlayer.isPlaying())
-//                        mediaPlayer.pause();
-//                    else
-//                        mediaPlayer.start();
-                } catch (Exception e) {
 
+                } catch (Exception e) {
+                        e.printStackTrace();
                 }
 
             }
@@ -403,39 +402,18 @@ public class MainActivity extends Activity {
             public void onClick(View v) {
                 Log.i("Here","here");
                 try {
-//                for (Song song : audioList) {
-//                    if (song.getSongName().equals(songName)) {
-//                        Uri newuri = ContentUris.withAppendedId(song.getStoragePath(), Long.valueOf(song.getId()));
-//                        RingtoneManager.setActualDefaultRingtoneUri(getApplicationContext(), RingtoneManager.TYPE_RINGTONE, newuri);
-//                        Toast.makeText(getApplicationContext(),"Ringtone is set to "+song.getSongName(),Toast.LENGTH_SHORT).show();
-//                        Log.e("Check","Checking if it is there");
-//                    }
-//
-//                }
-//                    Uri ringtone= RingtoneManager.getActualDefaultRingtoneUri(MainActivity.this, RingtoneManager.TYPE_RINGTONE);
-//                    Log.e("Default Ringtone is" , ""+ringtone);
-
-                    //sharedPreferences = getApplicationContext().getSharedPreferences("Ringtone Details", Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString(day,songName);
-
+                    Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+                    String json = gson.toJson(song_for);
+                    editor.putString(day,json);
                     editor.apply();
-                    demo.setText("Ringtone Set for "+day+ " is "+sharedPreferences.getString(day,""));
-                    getPosition();
+                 //   demo.setText("Ringtone Set for "+day+ " is "+sharedPreferences.getString(day,""));
                     String song=changeRingtone(audioList);
-                    Toast.makeText(getApplicationContext(),"Ringtone set for "+day+" is "+sharedPreferences.getString(day,""),Toast.LENGTH_SHORT).show();
+               //     Toast.makeText(getApplicationContext(),"Ringtone set for "+day+" is "+sharedPreferences.getString(day,""),Toast.LENGTH_SHORT).show();
 
 
 //                    Calendar calendar = Calendar.getInstance();
 //                    int day = calendar.get(Calendar.DAY_OF_WEEK);
-
-
-                    Calendar now = Calendar.getInstance();
-                    Log.i("time",""+now.getTime());
-                    Log.i("Hour",""+now.get(Calendar.HOUR_OF_DAY));
-                    Log.i("Min",""+now.get(Calendar.MINUTE));
-                    Log.i("day",""+now.get(Calendar.DAY_OF_WEEK));
-
                 }
                 catch (Throwable t) {
 
@@ -459,12 +437,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    public void getPosition(){
 
-        position1=adapter.getPosition(songName);
-
-
-    }
     public  String changeRingtone(List<Song> audioList1){
 
 //        SharedPreferences sharedPreferences = getSharedPreferences("Ringtone Manager",
@@ -474,24 +447,27 @@ public class MainActivity extends Activity {
         Log.i("day",simpleDateformat.format(now));
         SharedPreferences sharedPreferences3 = getSharedPreferences("Ringtone Manager",
                 Context.MODE_PRIVATE);
-        String savedSongName=sharedPreferences3.getString(simpleDateformat.format(now),"");
 
-        for (Song song : audioList1) {
-            Log.i("Song here is ",song.getSongName());
-            Log.i("Song Name here is",songName);
-            if (song.getSongName().equals(savedSongName)) {
-                Log.i("value of day is ",sharedPreferences.getString(simpleDateformat.format(now),""));
-               // Long.valueOf(sharedPreferences.getString(simpleDateformat.format(now),""));
+        String savedSongName=sharedPreferences3.getString(simpleDateformat.format(now),"");
+        Gson json = new Gson();
+        Song song_here = json.fromJson(savedSongName, Song.class);
+        for(Song song:audioList1)
+        {
+            if(song.getId().equals(song_here.getId()))
+            {
                 Uri newuri = ContentUris.withAppendedId(song.getStoragePath(), Long.valueOf(song.getId()));
                 RingtoneManager.setActualDefaultRingtoneUri(getApplicationContext(), RingtoneManager.TYPE_RINGTONE, newuri);
-            //    Toast.makeText(getApplicationContext(),"Ringtone set for "+simpleDateformat.format(now)+"is "+song.getSongName(),Toast.LENGTH_SHORT).show();
-                Log.e("Check","Checking if it is there");
-                return  song.getSongName();
+
 
             }
-
         }
-        return "";
+            //    Toast.makeText(getApplicationContext(),"Ringtone set for "+simpleDateformat.format(now)+"is "+song.getSongName(),Toast.LENGTH_SHORT).show();
+        Log.e("Check","Checking if it is there");
+        return  song_here.getSongName();
+
+
+
+
 //        Uri ringtone= RingtoneManager.getActualDefaultRingtoneUri(MainActivity.this, RingtoneManager.TYPE_RINGTONE);
 //        Log.e("Default Ringtone is" , ""+ringtone);
     }
@@ -500,15 +476,17 @@ public class MainActivity extends Activity {
     {
         SharedPreferences sharedPreferences4 = getSharedPreferences("Ringtone Manager",
                 Context.MODE_PRIVATE);
-        String savedSongName=sharedPreferences4.getString(day,"");
-        int pos=adapter.getPosition(savedSongName);
+        Gson gson=new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+        String json = sharedPreferences4.getString(day, "");
+        Song obj = gson.fromJson(json, Song.class);
+        int pos=adapter.getPosition(obj);
 
         return pos;
     }
     private void setDefaultRingtone()
     {
         Uri ringtone= RingtoneManager.getActualDefaultRingtoneUri(MainActivity.this, RingtoneManager.TYPE_RINGTONE);
-
+        Song song1=null;
         Log.e("Default Ringtone is" , ""+ringtone);
         Log.i("haha","haha");
         for (Song song : audioList) {
@@ -516,24 +494,26 @@ public class MainActivity extends Activity {
             Log.i("ringtone",ringtone.toString());
 
             if (ContentUris.withAppendedId(song.getStoragePath(), Long.valueOf(song.getId())).equals(ringtone)) {
-                defaultSongName=song.getSongName();
+               song1=new Song(song.getSongName(),song.getId());
                 break;
             }
             }
                     if((sharedPreferences1.getString("defaultRingtone","").equals(""))) {
                         SharedPreferences.Editor editor1 = sharedPreferences1.edit();
-                        editor1.putString("defaultRingtone", defaultSongName);
-                        position1=adapter.getPosition(defaultSongName);
+                        Gson gson=new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+                        String json=gson.toJson(song1);
+                        editor1.putString("defaultRingtone", json);
                         editor1.commit();
                         for (String day : days) {
                             SharedPreferences.Editor editor = sharedPreferences.edit();
-                            editor.putString(day, defaultSongName);
-
+                            editor.putString(day, json);
                             editor.apply();
 
                         }
 
                     }
             }
+
+
 
 }

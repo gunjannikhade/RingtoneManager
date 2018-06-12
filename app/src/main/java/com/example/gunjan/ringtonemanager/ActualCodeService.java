@@ -19,6 +19,8 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -38,6 +40,8 @@ public class ActualCodeService extends IntentService {
         super("ActualCodeService");
     }
     List<Song> audioList=new ArrayList<>();
+    List<Song> displayList=new ArrayList<>();
+
 
     @Override
     public void onCreate() {
@@ -74,7 +78,7 @@ public class ActualCodeService extends IntentService {
                     Log.e("data no internal",""+MediaStore.Audio.Media.getContentUriForPath(audioCursor.getString(data)));
                     //     namemap.put(id,audioCursor.getString(audioIndex));
                     audioList.add(new Song(audioCursor.getString(audioIndex), audioCursor.getString(data),id,MediaStore.Audio.Media.getContentUriForPath(audioCursor.getString(data))));
-
+                    displayList.add(new Song(audioCursor.getString(audioIndex),id));
                     Log.i("audioCursor", audioCursor.getString(data));
                     //  audioList.add("Sunday");
 
@@ -95,6 +99,7 @@ public class ActualCodeService extends IntentService {
                     Log.e("id", audioCursorexternal.getString(0));
                     Log.e("data no",""+audioCursorexternal.getColumnIndexOrThrow(MediaStore.Audio.Media._ID));
                     audioList.add(new Song(audioCursorexternal.getString(audioIndex), audioCursorexternal.getString(data),id,MediaStore.Audio.Media.getContentUriForPath(audioCursorexternal.getString(data))));
+                    displayList.add(new Song(audioCursorexternal.getString(audioIndex),id));
 
                     Log.i("audioCursor", audioCursorexternal.getString(data));
                     //  audioList.add("Sunday");
@@ -115,13 +120,12 @@ public class ActualCodeService extends IntentService {
         SharedPreferences sharedPreferences3 = getSharedPreferences("Ringtone Manager",
                 Context.MODE_PRIVATE);
         String savedSongName=sharedPreferences3.getString(simpleDateformat.format(now),"");
-
+        Gson gson=new Gson();
+        Song song_here=gson.fromJson(savedSongName,Song.class);
         for (Song song : audioList) {
             Log.i("Song here is ",song.getSongName());
             //Log.i("Song Name here is",songName);
-            if (song.getSongName().equals(savedSongName)) {
-                //  Log.i("value of day is ",sharedPreferences.getString(simpleDateformat.format(now),""));
-                //   Long.valueOf(sharedPreferences.getString(simpleDateformat.format(now),""));
+            if (song.getId().equals(song_here.getId())) {
                 Uri newuri = ContentUris.withAppendedId(song.getStoragePath(), Long.valueOf(song.getId()));
                 RingtoneManager.setActualDefaultRingtoneUri(getApplicationContext(), RingtoneManager.TYPE_RINGTONE, newuri);
                 Toast.makeText(getApplicationContext(),"Ringtone is set to "+song.getSongName(),Toast.LENGTH_SHORT).show();

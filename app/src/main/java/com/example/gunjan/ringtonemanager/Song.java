@@ -2,6 +2,8 @@ package com.example.gunjan.ringtonemanager;
 
 import android.net.Uri;
 
+import com.google.gson.annotations.Expose;
+
 import java.net.URI;
 
 /**
@@ -9,9 +11,12 @@ import java.net.URI;
  */
 
 public class Song {
+    @Expose
     String songName;
     String Path;
+    @Expose
     String id;
+
     Uri storagePath;
     int position;
 
@@ -42,14 +47,17 @@ public class Song {
     public void setStoragePath(Uri storagePath) {
         this.storagePath = storagePath;
     }
+    public Song(String songName, String id) {
+        this.songName = songName;
+        this.id = id;
+    }
+
 
     public Song(String songName, String path, String id, Uri storagePath) {
         this.songName = songName;
         Path = path;
         this.id=id;
         this.storagePath=storagePath;
-
-
     }
 
     public void setSongName(String songName) {
@@ -62,5 +70,20 @@ public class Song {
 
     public void setPath(String path) {
         Path = path;
+    }
+
+    @Override
+    public String toString() {
+        return songName;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Song){
+            Song c = (Song ) obj;
+            if(c.getSongName().equals(songName) && c.getId()==id ) return true;
+        }
+
+        return false;
     }
 }
